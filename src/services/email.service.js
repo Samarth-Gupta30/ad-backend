@@ -1,6 +1,5 @@
 const nodemailer = require('nodemailer');
 
-// Create the transporter using Gmail and OAuth2
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -12,8 +11,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Verify the connection configuration
-transporter.verify((error, success) => {
+transporter.verify((error) => {
     if (error) {
         console.error('Error connecting to email server:', error);
     } else {
@@ -21,20 +19,17 @@ transporter.verify((error, success) => {
     }
 });
 
-// Export the transporter for use in other files
-// Function to send email
 const sendEmail = async (to, subject, text, html) => {
     try {
         const info = await transporter.sendMail({
-            from: `"Backed Ledger" <${process.env.EMAIL_USER}>`, // sender address
-            to, // list of receivers
-            subject, // Subject line
-            text, // plain text body
-            html, // html body
+            from: `"Backed Ledger" <${process.env.EMAIL_USER}>`,
+            to,
+            subject,
+            text,
+            html,
         });
 
         console.log('Message sent: %s', info.messageId);
-        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
     } catch (error) {
         console.error('Error sending email:', error);
     }
@@ -52,4 +47,16 @@ async function sendRegistrationEmail(userEmail, name) {
     await sendEmail(userEmail, subject, text, html);
 }
 
-module.exports = { sendEmail, sendRegistrationEmail };
+async function sendTransactionEmail(userEmail, name, amount, toAccount) {
+    const subject = 'Transaction Confirmation - Backed Ledger';
+    const text = `Hi ${name},\n\nYour transaction of ₹${amount} to account ${toAccount} has been completed successfully.\n\nBest regards,\nThe Backed Ledger Team`;
+    const html = `
+        <p>Hi ${name},</p>
+        <p>Your transaction of <strong>₹${amount}</strong> to account <code>${toAccount}</code> has been completed successfully.</p>
+        <p>Best regards,<br>The Backed Ledger Team</p>
+    `;
+
+    await sendEmail(userEmail, subject, text, html);
+}
+
+module.exports = { sendEmail, sendRegistrationEmail, sendTransactionEmail };
